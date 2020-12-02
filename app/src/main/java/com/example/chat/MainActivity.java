@@ -42,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
     FirebaseDatabase database;
     DatabaseReference messageDataBaseReference;
     ChildEventListener childEventListener;
+    DatabaseReference usersDataBaseReference;
+    ChildEventListener usersEventListener;
 
 
     @Override
@@ -51,14 +53,19 @@ public class MainActivity extends AppCompatActivity {
 
         database = FirebaseDatabase.getInstance();
         messageDataBaseReference = database.getReference().child("chat");
-
+        usersDataBaseReference = database.getReference().child("users");
 
         progressBar = findViewById(R.id.progressBar);
         sendImageButton = findViewById(R.id.sendPhotoButton);
         sendMessageButtom = findViewById(R.id.sendMessageButtom);
         messageEditText = findViewById(R.id.editMessageText);
 
-        username = "Default user";
+        Intent intent = getIntent();
+        if (intent != null) {
+            username = intent.getStringExtra("Username");
+        } else {
+            username = "Default user";
+        }
 
         messageListView = findViewById(R.id.messageListView);
         List<MessageChat> messageChats = new ArrayList<>(); //создаёт массив объектов класса MessageChat
@@ -115,6 +122,38 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+
+        usersEventListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                User user = snapshot.getValue(User.class);
+                if (user.getId().equals(FirebaseAuth.getInstance().getUid())){
+                    username = user.getName();
+                }
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        };
+        usersDataBaseReference.addChildEventListener(usersEventListener);
 
         //реализация методов в случаях различных изменений в БД
         childEventListener = new ChildEventListener() {
