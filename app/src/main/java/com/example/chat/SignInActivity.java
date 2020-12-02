@@ -20,9 +20,9 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class SignInActivity extends AppCompatActivity {
 
-    private FirebaseAuth mAuth;
+    private FirebaseAuth mAuth; //авторизация. оф документация с сайта firebase
 
-    private static final String TAG = "SignInActivity";
+    private static final String TAG = "SignInActivity"; //ключ для logcat
 
     private EditText emailEditText;
     private EditText passwordEditText;
@@ -47,79 +47,101 @@ public class SignInActivity extends AppCompatActivity {
         toggleLoginSignUpTextView = findViewById(R.id.toggleLoginSignUpTextView);
         loginSignUpButton = findViewById(R.id.loginSignUpButton);
 
+        //слушает нажатие кнопки Sign Up
         loginSignUpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                loginSignUpUser(emailEditText.getText().toString().trim(), passwordEditText.getText().toString().trim());
+                loginSignUpUser(emailEditText.getText().toString().trim(), passwordEditText.getText().toString().trim()); //передаёт в метод mail и pas с эдиттекстов
             }
         });
+
+        if(mAuth.getCurrentUser() != null){
+            startActivity(new Intent(SignInActivity.this, MainActivity.class));     //запускает MainActivity если пользователь залогинен (проверка стандартным методом getCurrentUser)
+        }
 
     }
 
     private void loginSignUpUser(String email, String password) {
 
-        if (loginModeActive){
+        if (loginModeActive){ //режим лог ина
 
-            mAuth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                // Sign in success, update UI with the signed-in user's information
-                                Log.d(TAG, "signInWithEmail:success");
-                                FirebaseUser user = mAuth.getCurrentUser();
-                                startActivity(new Intent(SignInActivity.this, MainActivity.class));
-                                //updateUI(user);
-                            } else {
-                                // If sign in fails, display a message to the user.
-                                Log.w(TAG, "signInWithEmail:failure", task.getException());
-                                Toast.makeText(SignInActivity.this, "Authentication failed.",
-                                        Toast.LENGTH_SHORT).show();
-                                //updateUI(null);
+            if(passwordEditText.getText().toString().trim().length() < 7){
+                Toast.makeText(this, "Passwords must be at least 7 characters", Toast.LENGTH_SHORT).show();
+            }
+            else if(emailEditText.getText().toString().trim().equals("")){
+                Toast.makeText(this, "Please, input your email", Toast.LENGTH_SHORT).show();
+            }
+            else {
+                mAuth.signInWithEmailAndPassword(email, password) //методы из документации по Firebase, на офф сайте раздел Android -> авторизация по паролю
+                        .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                if (task.isSuccessful()) {
+                                    // Sign in success, update UI with the signed-in user's information
+                                    Log.d(TAG, "signInWithEmail:success");
+                                    FirebaseUser user = mAuth.getCurrentUser();
+                                    startActivity(new Intent(SignInActivity.this, MainActivity.class));
+                                    //updateUI(user);
+                                } else {
+                                    // If sign in fails, display a message to the user.
+                                    Log.w(TAG, "signInWithEmail:failure", task.getException());
+                                    Toast.makeText(SignInActivity.this, "Authentication failed.",
+                                            Toast.LENGTH_SHORT).show();
+                                    //updateUI(null);
+                                }
                             }
-                        }
-                    });
+                        });
+            }
 
-        } else {
 
-            mAuth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                // Sign in success, update UI with the signed-in user's information
-                                Log.d(TAG, "createUserWithEmail:success");
-                                FirebaseUser user = mAuth.getCurrentUser();
-                                startActivity(new Intent(SignInActivity.this, MainActivity.class));
-                                //updateUI(user);
-                            } else {
-                                // If sign in fails, display a message to the user.
-                                Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                                Toast.makeText(SignInActivity.this, "Authentication failed.",
-                                        Toast.LENGTH_SHORT).show();
-                                //updateUI(null);
+        } else { //режим регистрации
+
+            if(!passwordEditText.getText().toString().trim().equals(repeatPasswordEditText.getText().toString().trim())){ //если пароли не совпадают, тост
+                Toast.makeText(this, "Passwords don't match", Toast.LENGTH_SHORT).show();
+            }
+            else if(passwordEditText.getText().toString().trim().length() < 7){
+                Toast.makeText(this, "Passwords must be at least 7 characters", Toast.LENGTH_SHORT).show();
+            }
+            else if(emailEditText.getText().toString().trim().equals("")){
+                Toast.makeText(this, "Please, input your email", Toast.LENGTH_SHORT).show();
+            }
+            else {
+                mAuth.createUserWithEmailAndPassword(email, password)   //методы из документации по Firebase, на офф сайте раздел Android -> авторизация по паролю
+                        .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                if (task.isSuccessful()) {
+                                    // Sign in success, update UI with the signed-in user's information
+                                    Log.d(TAG, "createUserWithEmail:success");
+                                    FirebaseUser user = mAuth.getCurrentUser();
+                                    startActivity(new Intent(SignInActivity.this, MainActivity.class));
+                                    //updateUI(user);
+                                } else {
+                                    // If sign in fails, display a message to the user.
+                                    Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                                    Toast.makeText(SignInActivity.this, "Authentication failed.",
+                                            Toast.LENGTH_SHORT).show();
+                                    //updateUI(null);
+                                }
                             }
+                        });
+            }
 
-                            // ...
-                        }
-                    });
         }
-
-
     }
 
-
+    // проверка кнопки Log in или Sign Up, переключается тапом по TextView
     public void toggleLoginMode(View view) {
 
         if (loginModeActive) {
             loginModeActive = false;
             loginSignUpButton.setText("Sign Up");
-            toggleLoginSignUpTextView.setText("Or log in");
+            toggleLoginSignUpTextView.setText("Or Log In");
             repeatPasswordEditText.setVisibility(View.VISIBLE);
         } else {
             loginModeActive = true;
-            loginSignUpButton.setText("Log in");
-            toggleLoginSignUpTextView.setText("Or sign up");
+            loginSignUpButton.setText("Log In");
+            toggleLoginSignUpTextView.setText("Or Sign Up");
             repeatPasswordEditText.setVisibility(View.GONE);
         }
 

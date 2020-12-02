@@ -4,10 +4,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -15,6 +19,7 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -56,12 +61,13 @@ public class MainActivity extends AppCompatActivity {
         username = "Default user";
 
         messageListView = findViewById(R.id.messageListView);
-        List<MessageChat> messageChats = new ArrayList<>();
-        messageAdapter = new MessageAdapter(this, R.layout.message_item, messageChats);
+        List<MessageChat> messageChats = new ArrayList<>(); //создаёт массив объектов класса MessageChat
+        messageAdapter = new MessageAdapter(this, R.layout.message_item, messageChats); //адаптер связывает массив объектов класса и слой разметки message_item
         messageListView.setAdapter(messageAdapter);
 
         progressBar.setVisibility(ProgressBar.INVISIBLE);
 
+        // делает кпопку Send активной, если введённый текст без пробелов > 0
         messageEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -84,21 +90,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        messageEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(50)});
+        messageEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(50)}); //устанавливает фильтр для эдиттекста
 
+        //отправка сообщения
         sendMessageButtom.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-
-                MessageChat message = new MessageChat();
-                message.setText(messageEditText.getText().toString());
+                MessageChat message = new MessageChat(); //создаёт объект класса
+                message.setText(messageEditText.getText().toString()); //устанавливает поля сеттерами
                 message.setName(username);
                 message.setImageUrl(null);
 
-                messageDataBaseReference.push().setValue(message);
+                messageDataBaseReference.push().setValue(message);  //пушит в БД
 
-                messageEditText.setText("");
+                messageEditText.setText("");    //чистит эдиттекст
 
             }
         });
@@ -110,8 +116,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //реализация методов в случаях различных изменений в БД
         childEventListener = new ChildEventListener() {
             @Override
+            //когда добавляется текст, заполняем объект класса и кидаем его в адаптер
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
                 MessageChat message = snapshot.getValue(MessageChat.class);
                 messageAdapter.add(message);
@@ -139,6 +147,27 @@ public class MainActivity extends AppCompatActivity {
         };
         messageDataBaseReference.addChildEventListener(childEventListener);
     }
-}
 
-//first push to github
+    @Override // создание меню и приявзка слоя
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override // реализация методов меню
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        switch (item.getItemId()){
+
+            case R.id.signOut:
+                FirebaseAuth.getInstance().signOut();
+                startActivity(new Intent(MainActivity.this, SignInActivity.class));
+                return true;
+            default: return super.onOptionsItemSelected(item);
+
+        }
+
+    }
+}
