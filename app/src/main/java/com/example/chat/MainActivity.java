@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        sendImageButton.setOnClickListener(new View.OnClickListener() {
+        sendImageButton.setOnClickListener(new View.OnClickListener() { // в случае клика по изображению вместо send
             @Override
             public void onClick(View v) {
 
@@ -230,15 +230,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) { // когда выбрана картинка
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_IAMGE_PICKER && resultCode == RESULT_OK){
-            Uri selectedImageUri = data.getData();
+            Uri selectedImageUri = data.getData(); // получаем uri картинки из data
             final StorageReference imageReference = chatImagesStorageReference.child(selectedImageUri.getLastPathSegment());
-            UploadTask uploadTask = imageReference.putFile(selectedImageUri);
-
-
-            uploadTask = imageReference.putFile(selectedImageUri);
+            UploadTask uploadTask;
+            uploadTask = imageReference.putFile(selectedImageUri); // загружаем картинку на Firebase Storage
 
             Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
                 @Override
@@ -254,8 +252,8 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onComplete(@NonNull Task<Uri> task) {
                     if (task.isSuccessful()) {
-                        Uri downloadUri = task.getResult();
-                        MessageChat message = new MessageChat();
+                        Uri downloadUri = task.getResult(); // скачиваем картинку с Firebase Storage
+                        MessageChat message = new MessageChat();    //создаём объект класса со ссылкой на картинку
                         message.setImageUrl(downloadUri.toString());
                         message.setName(username);
                         messageDataBaseReference.push().setValue(message);
