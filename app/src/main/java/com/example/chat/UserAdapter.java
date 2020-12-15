@@ -40,7 +40,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
     @Override
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
         User currentUser = users.get(position);
-        holder.photoImageView.setImageResource(currentUser.getAvatarMockUpResource());
+        holder.avatarImageView.setImageResource(currentUser.getAvatarMockUpResource());
         holder.usernameTextView.setText(currentUser.getName());
 
     }
@@ -52,12 +52,12 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
 
     public static class UserViewHolder extends RecyclerView.ViewHolder {
 
-        public ImageView photoImageView;
+        public ImageView avatarImageView;
         public TextView usernameTextView;
 
         public UserViewHolder(@NonNull View itemView, OnUserClickListener listener) {
             super(itemView);
-            photoImageView = itemView.findViewById(R.id.photoImageView);
+            avatarImageView = itemView.findViewById(R.id.avatarImageView);
             usernameTextView = itemView.findViewById(R.id.usernameTextView);
 
             itemView.setOnClickListener(new View.OnClickListener() {
@@ -72,6 +72,9 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
 
                 }
             });
+
         }
     }
+
+
 }

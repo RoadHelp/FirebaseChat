@@ -1,18 +1,24 @@
 package com.example.chat;
 
 public class MessageChat {
-    String text;
-    String name;
-    String imageUrl;
+    private String text;
+    private String name;
+    private String sender;
+    private String recipient;
+    private String imageUrl;
+    private boolean isMine;
 
     public MessageChat() {
 
     }
 
-    public MessageChat(String text, String name, String imageUrl) {
+    public MessageChat(String text, String name, String sender, String recipient, String imageUrl, boolean isMine) {
         this.text = text;
         this.name = name;
+        this.sender = sender;
+        this.recipient = recipient;
         this.imageUrl = imageUrl;
+        this.isMine = isMine;
     }
 
     public String getText() {
@@ -37,5 +43,29 @@ public class MessageChat {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public String getSender() {
+        return sender;
+    }
+
+    public void setSender(String sender) {
+        this.sender = sender;
+    }
+
+    public String getRecipient() {
+        return recipient;
+    }
+
+    public void setRecipient(String recipient) {
+        this.recipient = recipient;
+    }
+
+    public boolean isMine() {
+        return isMine;
+    }
+
+    public void setMine(boolean mine) {
+        isMine = mine;
     }
 }

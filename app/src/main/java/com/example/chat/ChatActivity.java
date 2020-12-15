@@ -46,21 +46,37 @@ public class ChatActivity extends AppCompatActivity {
     private EditText messageEditText;
     private String username;
     private static final int RC_IAMGE_PICKER = 123;
+    private String recepientUsername;
+    private String recipientUserId;
+    private FirebaseAuth mAuth;
 
-    FirebaseDatabase database;
-    DatabaseReference messageDataBaseReference;
-    ChildEventListener childEventListener;
-    DatabaseReference usersDataBaseReference;
-    ChildEventListener usersEventListener;
+    private FirebaseDatabase database;
+    private DatabaseReference messageDataBaseReference;
+    private ChildEventListener childEventListener;
+    private DatabaseReference usersDataBaseReference;
+    private ChildEventListener usersEventListener;
 
-    FirebaseStorage storage;
-    StorageReference chatImagesStorageReference;
+    private FirebaseStorage storage;
+    private StorageReference chatImagesStorageReference;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+
+        mAuth = FirebaseAuth.getInstance();
+
+        Intent intent = getIntent();
+        if (intent != null) {
+            username = intent.getStringExtra("Username");
+            recipientUserId = intent.getStringExtra("recipientUserId");
+            recepientUsername = intent.getStringExtra("recipientUserName");
+        }
+
+        setTitle("Chat with " + recepientUsername);
+
+
 
         database = FirebaseDatabase.getInstance();
         storage = FirebaseStorage.getInstance();
@@ -73,12 +89,7 @@ public class ChatActivity extends AppCompatActivity {
         sendMessageButtom = findViewById(R.id.sendMessageButtom);
         messageEditText = findViewById(R.id.editMessageText);
 
-        Intent intent = getIntent();
-        if (intent != null) {
-            username = intent.getStringExtra("Username");
-        } else {
-            username = "Default user";
-        }
+
 
         messageListView = findViewById(R.id.messageListView);
         List<MessageChat> messageChats = new ArrayList<>(); //создаёт массив объектов класса MessageChat
@@ -120,6 +131,8 @@ public class ChatActivity extends AppCompatActivity {
                 MessageChat message = new MessageChat(); //создаёт объект класса
                 message.setText(messageEditText.getText().toString()); //устанавливает поля сеттерами
                 message.setName(username);
+                message.setSender(mAuth.getCurrentUser().getUid());
+                message.setRecipient(recipientUserId);
                 message.setImageUrl(null);
 
                 messageDataBaseReference.push().setValue(message);  //пушит в БД
@@ -179,7 +192,14 @@ public class ChatActivity extends AppCompatActivity {
             //когда добавляется текст, заполняем объект класса и кидаем его в адаптер
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
                 MessageChat message = snapshot.getValue(MessageChat.class);
-                messageAdapter.add(message);
+
+                if (message.getSender().equals(mAuth.getCurrentUser().getUid()) && message.getRecipient().equals(recipientUserId)) {
+                    message.setMine(true);
+                    messageAdapter.add(message);
+                } else if(message.getRecipient().equals(mAuth.getCurrentUser().getUid()) && message.getSender().equals(recipientUserId)){
+                    message.setMine(false);
+                    messageAdapter.add(message);
+                }
             }
 
             @Override
@@ -255,6 +275,8 @@ public class ChatActivity extends AppCompatActivity {
                         MessageChat message = new MessageChat();    //создаём объект класса со ссылкой на картинку
                         message.setImageUrl(downloadUri.toString());
                         message.setName(username);
+                        message.setSender(mAuth.getCurrentUser().getUid());
+                        message.setRecipient(recipientUserId);
                         messageDataBaseReference.push().setValue(message);
                     } else {
                         // Handle failures
